@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 require('dotenv').config()
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors')
 const port = process.env.PORT || 5000
@@ -26,6 +27,8 @@ const client = new MongoClient(uri, {
     }
 });
 
+
+
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
@@ -33,6 +36,16 @@ async function run() {
 
         const carDoctorCollection = client.db('carDoctorDB').collection('doctor')
         const carBookingCollection = client.db('carDoctorDB').collection('carDoctor')
+
+        app.post('/jwt', (req,res)=>{
+            const user = req.body
+            // console.log(user)
+            const token = jwt.sign(user, process.env.DB_USER_SECRET,{
+                expiresIn:"1h"
+            })
+            // console.log(token)
+            res.send({token})
+        })
 
         app.get('/services', async(req, res)=>{
             const cursor = carDoctorCollection.find()
@@ -70,10 +83,24 @@ async function run() {
             res.send(result)
         })
 
+        app.patch('/bookings/:id', async (req, res)=>{
+            const id = req.params.id
+            const filter = {_id: new ObjectId(id)}
+            const updateBook = req.body
+            const updateDoc = {
+                $set:{
+                    status: updateBook.status
+                }
+            }
+            const result = await carBookingCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
         app.delete('/bookings/:id', async(req, res)=>{
             const id = req.params.id
             const query = {_id: new ObjectId(id)}
             const result = await carBookingCollection.deleteOne(query)
+            console.log(result)
             res.send(result)
             
         })
