@@ -10,10 +10,6 @@ const port = process.env.PORT || 5000
 app.use(cors())
 app.use(express.json())
 
-// EXniBXC2o6nQJtbp
-// carDoctorDB
-
-
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6ogtg9l.mongodb.net/?retryWrites=true&w=majority`;
@@ -52,7 +48,7 @@ const verifyJwt = (req, res, next)=>{
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const carDoctorCollection = client.db('carDoctorDB').collection('doctor')
         const carBookingCollection = client.db('carDoctorDB').collection('carDoctor')
@@ -87,7 +83,7 @@ async function run() {
         // car booking
 
         app.get('/bookings', verifyJwt, async(req,res)=>{
-            // console.log( req)
+            console.log( req)
             const decoded = req.decoded
 
             if(decoded.email !== req.query.email){
