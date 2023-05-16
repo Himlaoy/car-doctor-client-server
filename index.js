@@ -28,6 +28,26 @@ const client = new MongoClient(uri, {
 });
 
 
+const verifyJwt = (req, res, next)=>{
+    const authorization = req.headers.authorization
+    if(!authorization){
+        return res.status(401).send({error:true, message: 'unauthorized access'})
+    }
+    const token = authorization.split(' ')[1]
+
+    jwt.verify(token, process.env.DB_USER_SECRET, (error, decoded)=>{
+        if(error){
+            res.status(403).send({error:true, message:'you are not verified'})
+        }
+        req.decoded= decoded
+       
+        next()
+    })
+
+
+}
+
+
 
 async function run() {
     try {
@@ -66,7 +86,14 @@ async function run() {
 
         // car booking
 
-        app.get('/bookings', async(req,res)=>{
+        app.get('/bookings', verifyJwt, async(req,res)=>{
+            // console.log( req)
+            const decoded = req.decoded
+
+            if(decoded.email !== req.query.email){
+                return res.send({error:1, message: "forbidden access"})
+            }
+
             let query = {}
             if(req.query?.email){
                 query={email: req.query.email}
@@ -78,7 +105,7 @@ async function run() {
 
         app.post('/bookings', async(req,res)=>{
             const booking = req.body
-            console.log(booking)
+            // console.log(booking)
             const result = await carBookingCollection.insertOne(booking)
             res.send(result)
         })
